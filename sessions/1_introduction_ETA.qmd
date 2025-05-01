@@ -61,16 +61,15 @@ Since it can be applied to multiple target entities and multivariate spaces, we 
 
 ## Package **ecotraj**
 
-::::: columns
-::: {.column width="85%"}
-The ETA framework is implemented in package **ecotraj**:
-:::
-::: {.column width="15%"}
-![](resources/img/logo_ecotraj.png)
-:::
-:::::
+![](resources/img/logo_ecotraj.png){.absolute width="80" right="200" top="30"}
 
-Package **ecotraj** is installed from CRAN (stable version):
+The ETA framework is implemented in package **ecotraj**:
+
+. . .
+
+**Installation**
+
+Package **ecotraj** (ver. 1.0.0) is distributed from [CRAN](https://cran.r-project.org/web/packages/ecotraj/index.html) and can be installed using:
 
 ```{r, eval = FALSE, include = TRUE, echo = TRUE}
 install.packages("ecotraj")
@@ -82,7 +81,19 @@ More frequent updates can be obtained if installing from **GitHub** (compilation
 remotes::install_github("emf-creaf/ecotraj")
 ```
 
-```{r, echo = TRUE, eval = TRUE, message=FALSE, warning=FALSE, include = FALSE}
+. . .
+
+**Documentation**
+
+Although the package comes with function documentation, the complete function reference and articles explaining how to use the package can be found at [https://emf-creaf.github.io/ecotraj/](https://emf-creaf.github.io/ecotraj/).
+
+. . .
+
+**Loading**
+
+We begin by loading **ecotraj**  (ver. `r packageVersion("ecotraj")`)  to the workspace:
+
+```{r, echo = TRUE, eval = TRUE}
 library(ecotraj)
 ```
 
@@ -96,6 +107,8 @@ library(ecotraj)
 
 ## Conceptual elements
 
+The most important *conceptual* elements of ETA are:
+
 
 | Element   | Notation | Description                                                  |
 |-------------------|--|---------------------------------------------------|
@@ -105,13 +118,34 @@ library(ecotraj)
 | *Ecological state* | $\mathbf{x}$ | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
 | *Multivariate state space* | $\Omega_0$ | The multidimensional space of ecological states. While $\Omega_0$ could be defined by explicit orthogonal axes, in ETA it is defined by calculating the dissimilarity between all pairs of states. |
 | *Time* | $t$ | The position of a given ecological observation in a (linear) temporal axis (i.e. ‘when’ the assessment act occurred).  |
-| *Date* |  | Recurrent or cyclical time associated to a given observation.  |
+
+. . .
+
+Recurrent or cyclical time is another conceptual element in [Cyclical Ecological Trajectory Analysis (CETA)](https://emf-creaf.github.io/ecotraj/articles/IntroductionCETA.html).
+
 
 ::: footer
 2.  Conceptual and geometric elements
 :::
 
 ## Geometric elements
+
+The most important *geometric* elements of ETA are:
+
+| Element   | Notation | Description                                                  |
+|-------------------|--|---------------------------------------------------|
+| *Ecological state* | $\mathbf{x}$ | The position of an observation in space $\Omega_0$. |
+| *Directed segment* | $\mathbf{s}$ | A pair of time-ordered ecological states. |
+| *Ecological observation* | $\mathbf{o}$ | A pair including the ecological state $\mathbf{x}$ and the assessment time $t$, i.e. $\mathbf{o} = \{ \mathbf{x}, t \}$. |
+| *Ecological trajectory* | $\mathbf{T}$ | A trajectory of size $n$ is defined as the set of $n$ time-ordered ecological observations. Alternatively, $\mathbf{T}$ can be defined as a set of $n - 1$ directed segments. |
+| *Trajectory path* | | A continuous function $f_T: [0,1]$ into $\Omega_0$, defining all points of the trajectory $\mathbf{T}$ from $f_T(0) = x_1$ to $f_T(1) = x_n$. The path includes the ecological states derived from ecological observations as well as intermediate states. |
+| *Ecological sub-trajectory* | | A trajectory derived from a time-ordered subset of the observations of its parent trajectory. |
+| *Trajectory section* | | A trajectory describing a subset of its parent trajectory path.  |
+
+. . .
+
+Other geometry elements are defined in [Cyclical Ecological Trajectory Analysis (CETA)](https://emf-creaf.github.io/ecotraj/articles/IntroductionCETA.html).
+
 
 ::: footer
 2.  Conceptual and geometric elements
@@ -120,19 +154,26 @@ library(ecotraj)
 
 # 3. Trajectory objects {background-color="#803300"}
 
-## Trajectory objects
+## Trajectory data
 
-::: footer
-3.  Trajectory objects
-:::
+Trajectory data inputs for ETA are of two kinds: (a) trajectory metadata; (b) a distance matrix $\mathbf{D}$ representing the resemblance between ecological states in space $\Omega_0$.
 
-##  Example data set
+. . .
+
+**Metadata**
+
+In this session we will primarily use a small data set where three entities have been observed four times. The vectors describing entities and observation times are:
 
 ```{r, echo = TRUE}
 entities <- c("1","1","1","1","2","2","2","2","3","3","3","3")
 times <- c(1.0,2.0,3.0,4.0,1.0,1.75,2.5,3.25,1.0,1.5,2.0,2.5)
 ```
 
+. . .
+
+**Distance matrix**
+
+For simplicity, we will assume that ecological states can be compared using the Euclidean distance, and that only two variables have been measured:
 
 ```{r, echo = TRUE}
 xy<-matrix(0, nrow=12, ncol=2)
@@ -152,6 +193,10 @@ xy[9:10,2] <- xy[5:6,2]
 xy[11:12,2]<-c(1.25,1.0)
 ```
 
+. . .
+
+The distance matrix $\mathbf{D}$ is obtained using:
+
 ```{r, echo = TRUE}
 d <- dist(xy)
 ```
@@ -163,11 +208,15 @@ d <- dist(xy)
 
 ## Creating trajectory objects
 
+Dynamic information is contained in objects of class `trajectories`.
 
-To perform ETA, we need to combine the distance matrix ($\mathbf{D}$) and the entity/survey information in a single object using function `defineTrajectories()`:
+. . .
+
+To build them, we need to combine the distance matrix ($\mathbf{D}$) and the entity/survey information in a single object using function `defineTrajectories()`:
+
 
 ```{r, echo = TRUE}
-x <- defineTrajectories(d, entities, times = times)
+x <- defineTrajectories(d, entities)
 ```
 
 . . .
@@ -185,6 +234,8 @@ This object contains two elements:
 names(x)
 ```
 
+. . .
+
 Element `d` contains the input distance matrix ($\mathbf{D}$), whereas `metadata` is a data frame including information of observations:
 
 ```{r, echo = TRUE}
@@ -195,12 +246,38 @@ x$metadata
 3.  Trajectory objects
 :::
 
+
+## Creating trajectory objects
+
+Note that `x` does not contain observation times (they are assumed to be equal to surveys).
+
+. . .
+
+In our examples we will also use another object where we include observation times: 
+
+```{r, echo = TRUE}
+xt <- defineTrajectories(d, entities, times = times)
+xt$metadata
+```
+
+One particularity of this second trajectory object `xt` is that trajectories are not synchronous (observation times are not the same across trajectories):
+
+```{r, echo = TRUE}
+is.synchronous(x)
+is.synchronous(xt)
+```
+
+
+::: footer
+3.  Trajectory objects
+:::
+
 ## Subsetting trajectory objects
 
 At some point in the ETA, one may desire to focus on particular trajectories or surveys. Function `subsetTrajectory()` allows subsetting objects of class `trajectories`, For example, we can decide to work with the trajectories of the second and third entities (sites):
 
 ```{r, echo = TRUE}
-x23 <- subsetTrajectories(x, site_selection = c("2", "3"))
+x23 <- subsetTrajectories(xt, site_selection = c("2", "3"))
 x23
 ```
 
@@ -213,7 +290,7 @@ x23
 To begin our analysis of the three trajectories, we display them in an ordination space, using function `trajectoryPCoA()`:
 
 ```{r pcoa, echo = TRUE, fig = TRUE, fig.height=5, fig.width=5, fig.align = "center"}
-trajectoryPCoA(x, 
+trajectoryPCoA(xt, 
                traj.colors = c("black","red", "blue"), lwd = 2,
                time.labels = TRUE)
 legend("topright", col=c("black","red", "blue"), 
@@ -269,10 +346,18 @@ trajectoryLengths(x)
 
 . . .
 
+In addition to segment lengths, one can also calculate the distance between all states and the initial, which is taken as reference:
+
+```{r, echo =TRUE} 
+trajectoryLengths(x, relativeToInitial = TRUE)
+```
+
+. . .
+
 When observation times are available, it may be of interest to calculate segment or trajectory speeds using:
 
 ```{r, echo = TRUE} 
-trajectorySpeeds(x)
+trajectorySpeeds(xt)
 ```
 
 . . .
@@ -327,7 +412,7 @@ trajectoryDirectionality(x)
 It is possible to assess multiple trajectory metrics in one function call to `trajectoryMetrics()`. This will only provide metrics that apply to the whole trajectory: 
 
 ```{r, echo = TRUE}
-trajectoryMetrics(x)
+trajectoryMetrics(xt)
 ```
 
 . . .
@@ -341,6 +426,88 @@ Another function, called `trajectoryWindowMetrics()` calculates trajectory metri
 
 # 5. Comparing target states to reference trajectories {background-color="#803300"}
 
+
+## Relative positions and orthogonal projection
+
+Ecological states occupy a **relative position** within their trajectory that depends on the total path length of the trajectory. 
+
+. . .
+
+Function `trajectoryProjection()` allows obtaining the relative position of each ecological state of a trajectory:
+
+```{r, echo = TRUE} 
+trajectoryProjection(x$d, 1:4, 1:4)
+```  
+
+. . .
+
+The same function can also be used to perform an **orthogonal projection** of arbitrary ecological states onto a given **reference trajectory**. 
+
+. . .
+
+For example we can study the projection of third state of the trajectory of entity '2' (i.e. state 7) onto the trajectory of entity '1' (i.e. states 1 to 4), which happens to be in the half of the trajectory:
+
+```{r, echo = TRUE} 
+trajectoryProjection(x$d, 7, 1:4)
+```  
+
+
+::: footer
+5. Comparing states to trajectories
+:::
+
+## Trajectory shifts
+
+Sometimes different ecosystems follow the same or similar path but with different speeds, or with an observations starting at a different point in the dynamic sequence. 
+
+. . .
+
+We can quantify those differences using function `trajectoryShifts()`, which internally uses orthogonal projection. 
+
+. . .
+
+To illustrate this function, we will use a small data set of two **parallel** trajectories, but where the second is shifted:
+
+```{r, echo = TRUE}
+entities3 <- c("1","1","1","1","2","2","2","2")
+times3 <- c(1,2,3,4,1,2,3,4)
+xy3<-matrix(0, nrow=8, ncol=2)
+xy3[2,2]<-1
+xy3[3,2]<-2
+xy3[4,2]<-3
+xy3[5:8,1] <- 0.25
+xy3[5:8,2] <- xy3[1:4,2] + 0.5 # States are all shifted with respect to entity "1"
+x_shift <- defineTrajectories(dist(xy3), entities3, times = times3)
+```
+
+
+::: footer
+5. Comparing states to trajectories
+:::
+
+## Trajectory shifts
+
+We can see the differences graphically:
+
+```{r, fig = TRUE, fig.height=3, fig.width=5, fig.align = "center"}
+par(mar=c(4,4,1,1))
+trajectoryPCoA(x_shift,  time.labels = TRUE,
+               traj.colors = c("black","red"), lwd = 2)
+legend("topright", col=c("black","red"), 
+       legend=c("Entity 1", "Entity 2"), bty="n", lty=1, lwd = 2)
+```
+
+
+Function `trajectoryShifts()` allows comparing different observations to a reference trajectory:
+
+```{r, echo = TRUE}
+trajectoryShifts(x_shift)
+```
+
+
+We see that the observations of trajectory "2" correspond to states of trajectory "1" at 0.5 time units later in time. Surveys with missing values indicate that the projection of the target state cannot be determined (because the reference trajectory is too short).
+
+
 ::: footer
 5. Comparing states to trajectories
 :::
@@ -349,11 +516,63 @@ Another function, called `trajectoryWindowMetrics()` calculates trajectory metri
 
 ## Trajectory convergence/divergence
 
+The study of the convergence or divergence between a pair of trajectories can be done in different ways, corresponding to different ecological questions.
+
+. . .
+
+If the trajectories are synchronous (i.e., their observations where done at the same times), one can analyze the sequence of distances between consecutive observations and address the question of whether the states of the two trajectories become closer/farther over time using a statistical test:
+
+```{r, echo = TRUE} 
+trajectoryConvergence(x, type = "pairwise.symmetric")
+```  
+
+. . .
+
+Note that this test can be straightforwardly generalized to multiple trajectories:
+
+```{r, echo = TRUE} 
+trajectoryConvergence(x, type = "multiple")
+```  
+
+. . .
+
+Finally, trajectory convergence/divergence can also be studied in non-synchronous trajectories. In this case, the question addressed is whether the states of the target trajectory become closer/farther to the reference trajectory over time.
+
+```{r, echo = TRUE, eval = FALSE} 
+trajectoryConvergence(xt, type = "pairwise.asymmetric")
+```  
+
+
 ::: footer
 6. Comparing pairs of trajectories
 :::
 
 ## Trajectory dissimilarity
+
+Calculating the dissimilarity between a pair of trajectories allows quantifying the resemblance in  dynamics of the corresponding pair of ecological entities. 
+
+. . .
+
+There are multiple ways of assessing the dissimilarity in dynamics, e.g.:
+
+| Coefficient       |  Differences included                      |
+|-------------------|--------------------------------------------|
+| *Segment path distance (SPD)*  | Position, shape. |
+| *Directed segment path distance (DSPD)*  | Position, shape, direction. |
+| *Time-sensitive path distance (TSPD)*  | Position, shape, direction, speed. |
+
+. . .
+
+Function `trajectoryDistances()` allows calculating several of them, and returns a distance matrix containing the dissimilarity between pairs of trajectories:
+
+```{r, echo = TRUE}
+trajectoryDistances(xt, distance.type = "TSPD")
+```
+
+
+. . .
+
+A detailed comparison of trajectory dissimilarity indices can be found in article [Distance metrics for trajectory resemblance](https://emf-creaf.github.io/ecotraj/articles/TrajectoryDistanceMetrics.html).
 
 ::: footer
 6. Comparing pairs of trajectories
@@ -367,7 +586,7 @@ Another function, called `trajectoryWindowMetrics()` calculates trajectory metri
 One may be interested in knowing how much diverse are a set of trajectories, and which entities follow dynamics more distinct from others. We refer to the diversity of trajectories as **dynamic variation**., and these questions can be addressed using:
 
 ```{r, echo = TRUE} 
-dynamicVariation(x)
+dynamicVariation(xt)
 ```  
 
 . . .
@@ -379,7 +598,7 @@ Analogously to `trajectoryInternalVariation()`, function `dynamicVariation()` re
 Function `dynamicVariation()`, makes internal calls to `trajectoryDistances()`, which means that we may get slightly different results if we change the trajectory dissimilarity coefficient:
 
 ```{r, echo = TRUE} 
-dynamicVariation(x, distance.type = "TSPD")
+dynamicVariation(xt, distance.type = "TSPD")
 ```  
 
 ::: footer
@@ -390,31 +609,37 @@ dynamicVariation(x, distance.type = "TSPD")
 
 ## Trajectory interpolation
 
-Sometimes the available trajectory data is non-synchronous, due to missing observations or observation times that do not match completely.
+Sometimes the available trajectory data is non-synchronous, due to **missing observations** or observation times that **do not match** across trajectories.
 
 . . .
 
-Trajectory interpolation allows recalculating positions along trajectory pathways so that observation times are the same across all trajectories, hence obtaining a synchronous data set.
+Trajectory interpolation allows recalculating positions along trajectory pathways so that observation times are the same across all trajectories, hence obtaining a **synchronous** data set.
+
+. . .
+
+For example, here we interpolate trajectories in `xt` to times `c(1, 1.5, 2, 2.5)` (the observation times of entity '3') to obtain a synchronous data set:
 
 ```{r, echo = TRUE}
-x_inter <- interpolateTrajectories(x, times = c(1, 1.5, 2.0, 2.5))
+xt_inter <- interpolateTrajectories(xt, times = c(1, 1.5, 2.0, 2.5))
 ```
 
 
 . . .
 
-We can see the differences graphically, adding observation times as labels:
+The following trajectory plots show the effect of interpolation visually:
 
 ```{r, fig = TRUE, fig.height=4, fig.width=8, fig.align = "center"}
 oldpar <- par(mfrow=c(1,2), mar = c(4,4,1,1))
-trajectoryPCoA(x, 
+trajectoryPCoA(xt, 
                traj.colors = c("black","red", "blue"), time.labels = TRUE,
                lwd = 2)
+title("Initial")
 legend("topright", col=c("black","red", "blue"), 
-       legend=c("Trajectory 1", "Trajectory 2", "Trajectory 3"), bty="n", lty=1, lwd = 2)
-trajectoryPCoA(x_inter, 
+       legend=c("Entity 1", "Entity 2", "Entity 3"), bty="n", lty=1, lwd = 2)
+trajectoryPCoA(xt_inter, 
                traj.colors = c("black","red", "blue"), time.labels = TRUE,
                lwd = 2)
+title("Interpolated")
 ```
 
 
@@ -428,20 +653,28 @@ Trajectory centering removes differences in (e.g. initial or overall) *position*
 
 . . .
 
+Trajectory centering is done using function `centerTrajectories()`:
+
 ```{r, echo = TRUE}
 x_cent <- centerTrajectories(x)
 ```
+
+. . .
+
+The following trajectory plots show the effect of centering visually:
 
 ```{r, fig = TRUE, fig.height=4, fig.width=8, fig.align = "center"}
 oldpar <- par(mfrow=c(1,2), mar = c(4,4,1,1))
 trajectoryPCoA(x, 
                traj.colors = c("black","red", "blue"),
                lwd = 2)
+title("Before centering")
 legend("topright", col=c("black","red", "blue"), 
-       legend=c("Trajectory 1", "Trajectory 2", "Trajectory 3"), bty="n", lty=1, lwd = 2)
+       legend=c("Entity 1", "Entity 2", "Entity 3"), bty="n", lty=1, lwd = 2)
 trajectoryPCoA(x_cent, 
                traj.colors = c("black","red", "blue"), 
                lwd = 2)
+title("After centering")
 ```
 
 
@@ -455,12 +688,11 @@ Trajectories may contain variation that is considered *noise*, for whatever reas
 
 . . .
 
-This is done applying a multivariate moving average over the trajectory, using a kernel to specify average weights. This is done using function `smoothTrajectories()`.
-
+Temporal smoothing of trajectories done using function `smoothTrajectories()`, which applies a multivariate moving average over each trajectory and uses a **Gaussian kernel** to specify average weights. 
 
 . . .
 
-The following trajectory plot illustrates the effect of smoothing:
+The following plots illustrate the effect of smoothing:
 
 ```{r}
 data("avoca")
