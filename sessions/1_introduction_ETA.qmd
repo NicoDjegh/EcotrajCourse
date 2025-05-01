@@ -26,11 +26,11 @@ progress: true
 1. Introduction
 2. Conceptual and geometric elements
 3. Trajectory objects
-4. Characterizing changes in state
-5. Characterizing changes in direction
-6. Comparing target states to reference trajectories
-7. Comparing pairs of trajectories
-8. Variation in ecological dynamics
+4. Characterizing trajectories
+5. Comparing target states to reference trajectories
+6. Comparing pairs of trajectories
+7. Variation in ecological dynamics
+8. Transforming trajectories
 :::
 
 ::: {.column width="50%"}
@@ -130,7 +130,7 @@ library(ecotraj)
 
 ```{r, echo = TRUE}
 entities <- c("1","1","1","1","2","2","2","2","3","3","3","3")
-surveys <- c(1,2,3,4,1,2,3,4,1,2,3,4)
+times <- c(1.0,2.0,3.0,4.0,1.0,1.75,2.5,3.25,1.0,1.5,2.0,2.5)
 ```
 
 
@@ -164,10 +164,10 @@ d <- dist(xy)
 ## Creating trajectory objects
 
 
-To perform ETA, we need to combine the distance matrix and the entity/survey information in a single object using function `defineTrajectories()`:
+To perform ETA, we need to combine the distance matrix ($\mathbf{D}$) and the entity/survey information in a single object using function `defineTrajectories()`:
 
 ```{r, echo = TRUE}
-x <- defineTrajectories(d, entities, surveys)
+x <- defineTrajectories(d, entities, times = times)
 ```
 
 . . .
@@ -185,7 +185,7 @@ This object contains two elements:
 names(x)
 ```
 
-Element `d` contains the input distance matrix, whereas `metadata` is a data frame including information of observations:
+Element `d` contains the input distance matrix ($\mathbf{D}$), whereas `metadata` is a data frame including information of observations:
 
 ```{r, echo = TRUE}
 x$metadata
@@ -206,6 +206,289 @@ x23
 
 ::: footer
 3.  Trajectory objects
+:::
+
+## Drawing trajectories
+
+To begin our analysis of the three trajectories, we display them in an ordination space, using function `trajectoryPCoA()`:
+
+```{r pcoa, echo = TRUE, fig = TRUE, fig.height=5, fig.width=5, fig.align = "center"}
+trajectoryPCoA(x, 
+               traj.colors = c("black","red", "blue"), lwd = 2,
+               time.labels = TRUE)
+legend("topright", col=c("black","red", "blue"), 
+       legend=c("Entity 1", "Entity 2", "Entity 3"), bty="n", lty=1, lwd = 2)
+```
+
+. . .
+
+Since $\Omega_0$ has only two dimensions in this example, the Principal Coordinates Analysis (PCoA) on matrix $\mathbf{D}$ displays the complete space.
+
+::: footer
+3.  Trajectory objects
+:::
+
+# 4. Characterizing trajectories {background-color="#803300"}
+
+## Characterizing changes in state
+
+::::: columns
+::: {.column width="80%"}
+
+| Metric            |  Description                                       |
+|-------------------|----------------------------------------------------|
+| *Segment length*  | The length of a segment $\mathbf{s}$ is given by the distance between its two endpoints. |
+| *Total path length*  | The total path length of a trajectory $\mathbf{T}$ is the sum of the lengths of its directed segments. |
+| *Segment speed*  | When associated to explicit time coordinates $t_{start}$ and $t_{end}$, the speed of change of a segment $\mathbf{s}$ is defined as the length divided by its duration. |
+| *Trajectory speed*  | The average speed of change in trajectory $\mathbf{T}$ is estimated as the total path length divided by its duration. |
+| *Trajectory sum of squares* | The sum of squares of the internal variation in the ecological states that conform trajectory $\mathbf{T}$. |
+| *Trajectory internal variation* | An unbiased estimator of the internal variance in the ecological states that conform trajectory $\mathbf{T}$. |
+| *Contribution of states to internal variation* | The *absolute* (sum of squares) or *relative* contributions of individual ecological states to the temporal variation in trajectory $\mathbf{T}$. |
+
+:::
+
+::: {.column width="20%"}
+:::
+:::::
+
+::: footer
+4. Characterizing trajectories
+:::
+
+## Characterizing changes in state
+
+Segment/trajectory length or speed metrics are useful, for example, *to determine which entity is evolving faster* than others or *to identify periods of faster changes* within the dynamics of a single entity.
+
+. . .
+
+One can obtain the length of trajectory segments and the total path length:
+
+```{r, echo =TRUE} 
+trajectoryLengths(x)
+```
+
+. . .
+
+When observation times are available, it may be of interest to calculate segment or trajectory speeds using:
+
+```{r, echo = TRUE} 
+trajectorySpeeds(x)
+```
+
+. . .
+
+Finally, one may calculate the internal variation of states within each trajectory using:
+```{r, echo = TRUE}
+trajectoryInternalVariation(x)
+```
+
+::: footer
+4. Characterizing trajectories
+:::
+
+## Characterizing changes in direction
+
+Since matrix $\mathrm{D}$ may represent a space $\Omega_0$ of multiple dimensions, angles cannot be calculated with respect to a single plane. Instead, each angle is measured on the plane defined by a triplet of points. Zero angles indicate that the three points (e.g. the two consecutive segments) are in a straight line. The larger the angle value, the more is trajectory changing in direction. 
+
+. . .
+
+Function `trajectoryAngles()` allows calculating the angles between consecutive segments:
+
+```{r, echo = TRUE} 
+trajectoryAngles(x)
+```
+
+Mean and standard deviation statistics of angles are calculated according to circular statistics. 
+
+. . . 
+
+We can use the same function to calculate angles relative to the initial state:
+
+```{r, echo = TRUE} 
+trajectoryAngles(x, relativeToInitial = TRUE)
+```
+
+. . .
+
+To measure the overall directionality of a trajectory (i.e. if the path consistently follows the same direction in $\Omega$ ), we recommend using function `trajectoryDirectionality()`:
+
+```{r, echo = TRUE} 
+trajectoryDirectionality(x)
+```  
+
+
+::: footer
+4. Characterizing trajectories
+:::
+
+
+## Assessing multiple metrics at once
+
+It is possible to assess multiple trajectory metrics in one function call to `trajectoryMetrics()`. This will only provide metrics that apply to the whole trajectory: 
+
+```{r, echo = TRUE}
+trajectoryMetrics(x)
+```
+
+. . .
+
+Another function, called `trajectoryWindowMetrics()` calculates trajectory metrics on moving windows over trajectories, but will not be illustrated here.
+
+
+::: footer
+4. Characterizing trajectories
+:::
+
+# 5. Comparing target states to reference trajectories {background-color="#803300"}
+
+::: footer
+5. Comparing states to trajectories
+:::
+
+# 6. Comparing pairs of trajectories {background-color="#803300"}
+
+## Trajectory convergence/divergence
+
+::: footer
+6. Comparing pairs of trajectories
+:::
+
+## Trajectory dissimilarity
+
+::: footer
+6. Comparing pairs of trajectories
+:::
+
+
+# 7. Variation in ecological dynamics {background-color="#803300"}
+
+## Variation in dynamics
+
+One may be interested in knowing how much diverse are a set of trajectories, and which entities follow dynamics more distinct from others. We refer to the diversity of trajectories as **dynamic variation**., and these questions can be addressed using:
+
+```{r, echo = TRUE} 
+dynamicVariation(x)
+```  
+
+. . .
+
+Analogously to `trajectoryInternalVariation()`, function `dynamicVariation()` returns the sum of squares of dynamic variation, an unbiased dynamic variance estimator and the relative contribution of individual trajectories to the overall sum of squares. 
+
+. . .
+
+Function `dynamicVariation()`, makes internal calls to `trajectoryDistances()`, which means that we may get slightly different results if we change the trajectory dissimilarity coefficient:
+
+```{r, echo = TRUE} 
+dynamicVariation(x, distance.type = "TSPD")
+```  
+
+::: footer
+7. Variation in ecological dynamics
+:::
+
+# 7. Transforming trajectories {background-color="#803300"}
+
+## Trajectory interpolation
+
+Sometimes the available trajectory data is non-synchronous, due to missing observations or observation times that do not match completely.
+
+. . .
+
+Trajectory interpolation allows recalculating positions along trajectory pathways so that observation times are the same across all trajectories, hence obtaining a synchronous data set.
+
+```{r, echo = TRUE}
+x_inter <- interpolateTrajectories(x, times = c(1, 1.5, 2.0, 2.5))
+```
+
+
+. . .
+
+We can see the differences graphically, adding observation times as labels:
+
+```{r, fig = TRUE, fig.height=4, fig.width=8, fig.align = "center"}
+oldpar <- par(mfrow=c(1,2), mar = c(4,4,1,1))
+trajectoryPCoA(x, 
+               traj.colors = c("black","red", "blue"), time.labels = TRUE,
+               lwd = 2)
+legend("topright", col=c("black","red", "blue"), 
+       legend=c("Trajectory 1", "Trajectory 2", "Trajectory 3"), bty="n", lty=1, lwd = 2)
+trajectoryPCoA(x_inter, 
+               traj.colors = c("black","red", "blue"), time.labels = TRUE,
+               lwd = 2)
+```
+
+
+::: footer
+8. Transforming trajectories
+:::
+
+## Trajectory centering
+
+Trajectory centering removes differences in (e.g. initial or overall) *position* between trajectories, without changing their shape, to focus on the direction of temporal changes.
+
+. . .
+
+```{r, echo = TRUE}
+x_cent <- centerTrajectories(x)
+```
+
+```{r, fig = TRUE, fig.height=4, fig.width=8, fig.align = "center"}
+oldpar <- par(mfrow=c(1,2), mar = c(4,4,1,1))
+trajectoryPCoA(x, 
+               traj.colors = c("black","red", "blue"),
+               lwd = 2)
+legend("topright", col=c("black","red", "blue"), 
+       legend=c("Trajectory 1", "Trajectory 2", "Trajectory 3"), bty="n", lty=1, lwd = 2)
+trajectoryPCoA(x_cent, 
+               traj.colors = c("black","red", "blue"), 
+               lwd = 2)
+```
+
+
+::: footer
+8. Transforming trajectories
+:::
+
+## Trajectory smoothing
+
+Trajectories may contain variation that is considered *noise*, for whatever reason (e.g. measurement error). Similarly to univariate smoothing of temporal series, noise can be smoothed out in trajectory data.
+
+. . .
+
+This is done applying a multivariate moving average over the trajectory, using a kernel to specify average weights. This is done using function `smoothTrajectories()`.
+
+
+. . .
+
+The following trajectory plot illustrates the effect of smoothing:
+
+```{r}
+data("avoca")
+avoca_D_man <- vegclust::vegdiststruct(avoca_strat, method="manhattan", transform = function(x){log(x+1)})
+years <- c(1971, 1974, 1978, 1983, 1987, 1993, 1999, 2004, 2009)
+avoca_times <- years[avoca_surveys]
+avoca_x <- defineTrajectories(avoca_D_man,  
+                              sites = avoca_sites, 
+                              times = avoca_times)
+avoca_x_smooth <- smoothTrajectories(avoca_x)
+```
+
+
+```{r trajectory_smooth_plot, echo=FALSE, warning = FALSE, fig.height=4, fig.width=8, fig.align = "center"}
+oldpar <- par(mar=c(4,4,1,1), mfrow=c(1,2))
+trajectoryPCoA(avoca_x,
+               traj.colors = RColorBrewer::brewer.pal(8,"Accent"), 
+               axes=c(1,2), length=0.1, lwd=2)
+title("Before smoothing")
+trajectoryPCoA(avoca_x_smooth,
+               traj.colors = RColorBrewer::brewer.pal(8,"Accent"), 
+               axes=c(1,2), length=0.1, lwd=2)
+title("After smoothing")
+par(oldpar)
+```
+
+::: footer
+8. Transforming trajectories
 :::
 
 #  {background-color="#803300"}
