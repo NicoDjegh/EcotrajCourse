@@ -1,0 +1,128 @@
+---
+title: "Introduction to Ecological Trajectory Analysis"
+title-slide-attributes: 
+  data-background-color: "#803300"
+format:
+  revealjs:
+    embed-resources: true
+    incremental: true
+    smaller: true
+    logo: resources/img/emf_logo.svg
+    theme: [default, resources/scss/custom.scss]
+editor: source
+author: "Miquel De Cáceres"
+institute: "Ecosystem Modelling Facility, CREAF"
+toc: false
+toc-depth: 2
+number-sections: false
+slide-number: true
+progress: true
+---
+
+# Outline {background-color="#803300"}
+
+::::: columns
+::: {.column width="50%"}
+1. Introduction
+2. Conceptual and geometric elements
+3. Characterizing changes in state
+4. Characterizing changes in direction
+5. Comparing target states to reference trajectories
+6. Comparing pairs of trajectories
+7. Variation in ecological dynamics
+:::
+
+::: {.column width="50%"}
+
+![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+:::
+:::::
+
+
+# 1. Introduction {background-color="#803300"}
+
+## What is Ecological Trajectory Analysis?
+
+Ecological Trajectory Analysis (ETA) is a framework to analyze the dynamics of ecological entities (e.g. communities or ecosystems).
+
+. . .
+
+The ETA framework was presented for community ecology in De Cáceres et al (2019), and was extended with new metrics and visualisation modes in Sturbois et al. (2021a). Procedures of trajectory analysis can be applied to data beyond community data tables. For example, the same framework was applied to stable isotope data in Sturbois et al. (2021b).
+
+. . .
+
+Since it can be applied to multiple target entities and multivariate spaces, we now refer to the framework as Ecological Trajectory Analysis and provide a package ecotraj that offers a set of functions to calculate metrics and produce plots.
+
+
+::: footer
+1.  Introduction
+:::
+
+## Package **ecotraj**
+
+::::: columns
+::: {.column width="85%"}
+The ETA framework is implemented in package **ecotraj**:
+:::
+::: {.column width="15%"}
+![](resources/img/logo_ecotraj.png)
+:::
+:::::
+
+Package **ecotraj** is installed from CRAN (stable version):
+
+```{r, eval = FALSE, include = TRUE, echo = TRUE}
+install.packages("ecotraj")
+```
+
+More frequent updates can be obtained if installing from **GitHub** (compilation tools are required):
+
+```{r, eval = FALSE, include = TRUE, echo = TRUE}
+remotes::install_github("emf-creaf/ecotraj")
+```
+
+```{r, echo = TRUE, eval = FALSE, message=FALSE, warning=FALSE, include = FALSE}
+library(ecotraj)
+```
+
+::: footer
+1.  Introduction
+:::
+
+
+
+# 2. Conceptual and geometric elements {background-color="#803300"}
+
+## Conceptual elements
+
+
+| Element   | Notation | Description                                                  |
+|-------------------|--|---------------------------------------------------|
+| *Target entity*  |  | The ecological entity whose dynamics are of interest. It can be an individual, a population, a community or an entire ecosystem                                    |
+| *Ecological observation* | **o**  | The assessment of the state of a target entity, normally implying multiple attributes, at a given point in time.  We also use the word observation to refer to the pair including the ecological state and time of assessment.                        |
+| *Survey* | | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
+| *Ecological state* | **x** | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
+| *Multivariate state space* | $\Omega_0$ | The multidimensional space of ecological states. While $\Omega_0$ could be defined by explicit orthogonal axes, in ETA it is defined by calculating the dissimilarity between all pairs of states. |
+| *Time* | $t$ | The position of a given ecological observation in a (linear) temporal axis (i.e. ‘when’ the assessment act occurred).  |
+| *Date* |  | Recurrent or cyclical time associated to a given observation.  |
+
+::: footer
+2.  Conceptual and geometric elements
+:::
+
+## Geometric elements
+
+::: footer
+2.  Conceptual and geometric elements
+:::
+
+## Creating and subsetting trajectory objects
+
+
+::: footer
+2.  Conceptual and geometric elements
+:::
+
+#  {background-color="#803300"}
+
+![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
