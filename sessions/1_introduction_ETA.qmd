@@ -25,11 +25,12 @@ progress: true
 ::: {.column width="50%"}
 1. Introduction
 2. Conceptual and geometric elements
-3. Characterizing changes in state
-4. Characterizing changes in direction
-5. Comparing target states to reference trajectories
-6. Comparing pairs of trajectories
-7. Variation in ecological dynamics
+3. Trajectory objects
+4. Characterizing changes in state
+5. Characterizing changes in direction
+6. Comparing target states to reference trajectories
+7. Comparing pairs of trajectories
+8. Variation in ecological dynamics
 :::
 
 ::: {.column width="50%"}
@@ -81,7 +82,7 @@ More frequent updates can be obtained if installing from **GitHub** (compilation
 remotes::install_github("emf-creaf/ecotraj")
 ```
 
-```{r, echo = TRUE, eval = FALSE, message=FALSE, warning=FALSE, include = FALSE}
+```{r, echo = TRUE, eval = TRUE, message=FALSE, warning=FALSE, include = FALSE}
 library(ecotraj)
 ```
 
@@ -99,9 +100,9 @@ library(ecotraj)
 | Element   | Notation | Description                                                  |
 |-------------------|--|---------------------------------------------------|
 | *Target entity*  |  | The ecological entity whose dynamics are of interest. It can be an individual, a population, a community or an entire ecosystem                                    |
-| *Ecological observation* | **o**  | The assessment of the state of a target entity, normally implying multiple attributes, at a given point in time.  We also use the word observation to refer to the pair including the ecological state and time of assessment.                        |
+| *Ecological observation* | $\mathbf{o}$  | The assessment of the state of a target entity, normally implying multiple attributes, at a given point in time.  We also use the word observation to refer to the pair including the ecological state and time of assessment.                        |
 | *Survey* | | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
-| *Ecological state* | **x** | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
+| *Ecological state* | $\mathbf{x}$ | An indication of the order of ecological observations (e.g. first, second, …), sometimes taken as a surrogate of linear time. |
 | *Multivariate state space* | $\Omega_0$ | The multidimensional space of ecological states. While $\Omega_0$ could be defined by explicit orthogonal axes, in ETA it is defined by calculating the dissimilarity between all pairs of states. |
 | *Time* | $t$ | The position of a given ecological observation in a (linear) temporal axis (i.e. ‘when’ the assessment act occurred).  |
 | *Date* |  | Recurrent or cyclical time associated to a given observation.  |
@@ -116,11 +117,95 @@ library(ecotraj)
 2.  Conceptual and geometric elements
 :::
 
-## Creating and subsetting trajectory objects
+
+# 3. Trajectory objects {background-color="#803300"}
+
+## Trajectory objects
+
+::: footer
+3.  Trajectory objects
+:::
+
+##  Example data set
+
+```{r, echo = TRUE}
+entities <- c("1","1","1","1","2","2","2","2","3","3","3","3")
+surveys <- c(1,2,3,4,1,2,3,4,1,2,3,4)
+```
+
+
+```{r, echo = TRUE}
+xy<-matrix(0, nrow=12, ncol=2)
+xy[2,2]<-1
+xy[3,2]<-2
+xy[4,2]<-3
+xy[5:6,2] <- xy[1:2,2]
+xy[7,2]<-1.5
+xy[8,2]<-2.0
+xy[5:6,1] <- 0.25
+xy[7,1]<-0.5
+xy[8,1]<-1.0
+xy[9:10,1] <- xy[5:6,1]+0.25
+xy[11,1] <- 1.0
+xy[12,1] <-1.5
+xy[9:10,2] <- xy[5:6,2]
+xy[11:12,2]<-c(1.25,1.0)
+```
+
+```{r, echo = TRUE}
+d <- dist(xy)
+```
 
 
 ::: footer
-2.  Conceptual and geometric elements
+3.  Trajectory objects
+:::
+
+## Creating trajectory objects
+
+
+To perform ETA, we need to combine the distance matrix and the entity/survey information in a single object using function `defineTrajectories()`:
+
+```{r, echo = TRUE}
+x <- defineTrajectories(d, entities, surveys)
+```
+
+. . .
+
+The function returns an object (a list) of class `trajectories` that contains all the information for analysis:
+
+```{r, echo = TRUE}
+class(x)
+```
+
+. . .
+
+This object contains two elements:
+```{r, echo = TRUE}
+names(x)
+```
+
+Element `d` contains the input distance matrix, whereas `metadata` is a data frame including information of observations:
+
+```{r, echo = TRUE}
+x$metadata
+```
+
+::: footer
+3.  Trajectory objects
+:::
+
+## Subsetting trajectory objects
+
+At some point in the ETA, one may desire to focus on particular trajectories or surveys. Function `subsetTrajectory()` allows subsetting objects of class `trajectories`, For example, we can decide to work with the trajectories of the second and third entities (sites):
+
+```{r, echo = TRUE}
+x23 <- subsetTrajectories(x, site_selection = c("2", "3"))
+x23
+```
+
+::: footer
+3.  Trajectory objects
 :::
 
 #  {background-color="#803300"}
