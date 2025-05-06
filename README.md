@@ -23,7 +23,8 @@ course slides.
 Code for course sessions is in `sessions/*.qmd` files. Printed
 `sessions/pdf/*.pdf` files can also be found.
 
-1.  Introduction to the ETA framework
+1.  Introduction to Ecological Trajectory Analysis
+2.  Introduction to Cyclical Ecological Trajectory Analysis
 
 ## Ancillary files
 

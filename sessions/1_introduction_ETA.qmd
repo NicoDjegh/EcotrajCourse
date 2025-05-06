@@ -84,7 +84,7 @@ The ETA framework is implemented in package **ecotraj**:
 
 **Installation**
 
-Package **ecotraj** (ver. 1.0.0) is distributed from [CRAN](https://cran.r-project.org/web/packages/ecotraj/index.html) and can be installed using:
+Package **ecotraj** (ver. 1.1.0) is distributed from [CRAN](https://cran.r-project.org/web/packages/ecotraj/index.html) and can be installed using:
 
 ```{r, eval = FALSE, include = TRUE, echo = TRUE}
 install.packages("ecotraj")
