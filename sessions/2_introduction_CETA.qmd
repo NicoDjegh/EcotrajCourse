@@ -1,0 +1,286 @@
+---
+title: "Introduction to Cyclical Ecological Trajectory Analysis"
+title-slide-attributes: 
+  data-background-color: "#00B1ED"
+format:
+  revealjs:
+    embed-resources: true
+    incremental: true
+    smaller: true
+    logo: resources/img/logo-lemar-big.png
+    theme: [default, resources/scss/custom.scss]
+editor: source
+author: "Nicolas Djeghri, Anthony Sturbois, Miquel De Cáceres"
+institute: "LEMAR, VivArmor Nature, EMF-CREAF"
+toc: false
+toc-depth: 2
+number-sections: false
+slide-number: true
+progress: true
+---
+# Outline {background-color="#00B1ED"}
+
+::::: columns
+::: {.column width="50%"}
+1. Aims and rationale of CETA
+2. CETA-specific conceptual and geometric elements
+3. Characterizing and comparing CETA trajectories
+4. Cyclical shifts
+:::
+
+::: {.column width="50%"}
+
+![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+:::
+:::::
+
+
+# 1. Introduction {background-color="#FE400"}
+
+## About Cyclical Ecological Trajectory Analysis
+
+**Aims and domain of application**
+
+Cyclical Ecological Trajectory Analysis (CETA) is an extension of the ETA framework to analyze cyclical ecological dynamics (seasons, day/night cycles...).
+
+. . .
+
+**Rationale and general approach**
+
+ + CETA proceeds by sub-setting trajectories presenting cyclical dynamics into sub-trajectories of interest (Cycles, and fixed date trajectories).
+
+ + CETA trajectories can then be described and compared as is done for other, non-CETA, trajectories.
+ 
+ + Cycles specific geometries sometimes necessitate using dedicated metrics.
+
+ + CETA also allows computing **Cyclical Shifts**, a multidimensional equivalent of the notion of phenological advances and delays.
+
+. . .
+
+**Software**
+
+CETA is readily implemented within the **ecotraj** package (from version 1.0.0)
+![](resources/img/logo_ecotraj.png){.absolute width="80" right="200" top="360"}
+
+. . .
+
+**Package call**
+```{r, echo = TRUE, eval = TRUE}
+library(ecotraj)
+```
+
+
+::: footer
+1.  Aims and rationale of CETA
+:::
+
+# 2. CETA-specific conceptual and geometric elements {background-color="#00B1ED"}
+
+## Conceptual and geometric elements
+
+The most important elements of CETA are:
+
+
+| Element   | Notation | Description                                                  |
+|-------------------|--|---------------------------------------------------|
+| *Cyclical trajectory* | $T$ | A cyclical trajectory is a trajectory presenting (or expected to present) cyclical dynamics.  |
+| *Time* | $t$ | The position of a given ecological observation in a linear temporal axis (i.e. ‘when’ the assessment act occurred).  |
+| *Date* | $đ$ | The position of a given ecological observation in a cyclical (or recurrent) temporal axis (e.g. a day of the year).  |
+| *Cycle duration*  | $DUR_C$ | The ecological entity whose dynamics are of interest. It can be an individual, a population, a community or an entire ecosystem  |
+
+
+. . .
+
+
+Together these elements allow defining CETA-specific trajectories:
+
+| Trajectory   | Notation | Description                                                  |
+|-------------------|--|---------------------------------------------------|
+| *Cycles* | $C$ | A Cycle is a special-case of trajectory section obtained from $T$ of duration $DUR_C$.  |
+| *Fixed date trajectories* | $fdT$ | Fixed date trajectories are the trajectories joining the ecological state of the same date $đ$ in a given cyclical trajectory.  |
+
+
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+
+## Defining some toy CETA trajectories
+
+Start by defining one cyclical trajectory with three cycles:
+
+```{r, echo = TRUE, eval = TRUE}
+times <- 0:30 #The sampling times of the time series
+DurC <- 10 #The duration of the cycles (i.e. the periodicity of the time series)
+dates <- times%%DurC #The dates associated to each times
+site <- rep(c("A"),length(times)) #The sites associated to each times (only one)
+trend <- 0.05 #A trend that will be applied to the cycles to make it more interesting
+noise <- 0.05 #A noise term to make things less perfect
+
+#Make cyclical data
+x <- sin((times*2*pi)/DurC)+trend*times+rnorm(length(times),mean=0,sd=noise)
+y <- cos((times*2*pi)/DurC)+rnorm(length(times),mean=0,sd=noise)
+mat <- cbind(x,y)
+
+#Express it as a distance matrix
+dmat <- dist(mat)
+
+#Finally make it a trajectory object:
+x <- defineTrajectories(dmat, sites = site, times = times)
+```
+
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+## Visualization of the cylical trajectory
+
+```{r pcoa, echo = TRUE, fig = TRUE, fig.height=5, fig.width=5, fig.align = "center"}
+trajectoryPCoA(x,lwd = 2,length = 0.2)
+```
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+## Extracting and visualizing the cycles...
+
+Extraction of cycles...
+```{r, echo = TRUE, eval = TRUE}
+cycle <- extractCycles(x,cycleDuration = DurC)
+```
+
+
+. . .
+
+...and visualization
+```{r pcoaCycles, echo = TRUE, fig = TRUE, fig.height=5, fig.width=5, fig.align = "center"}
+cyclePCoA(cycle,lwd = 2,length = 0.2)
+```
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+## ...and the fixed date trajectories
+
+Extraction of fixed date trajectories...
+```{r, echo = TRUE, eval = TRUE}
+fdtraj <- extractFixedDateTrajectories(x,
+                                       cycleDuration = DurC,
+                                       namesFixedDate = paste0("Date_",1:10))
+```
+
+
+. . .
+
+
+...and visualization
+```{r pcoafdT, echo = TRUE, fig = TRUE, fig.height=5, fig.width=5, fig.align = "center"}
+fixedDateTrajectoryPCoA(fdtraj,lwd = 2,length = 0.2)
+```
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+## Object structure
+
+Note that the structure of the **ecotraj/CETA** objects is very similar to what you already know.
+```{r, echo = TRUE, eval = TRUE}
+names(cycle)
+names(fdtraj)
+```
+
+. . .
+
+
+But cycles have some specificities
+```{r, echo = TRUE, eval = TRUE}
+head(cycle$metadata)
+head(fdtraj$metadata)
+```
+
+. . .
+
+We won't get into the detail now but you can check the [CETA vignette](https://emf-creaf.github.io/ecotraj/articles/IntroductionCETA.html) for more details.
+
+::: footer
+2.  CETA-specific conceptual and geometric elements
+:::
+
+# 3. Characterizing and comparing CETA trajectories {background-color="#00B1ED"}
+
+## Metrics for cycles
+
+Cycle have particular geometries (they loop back on themselves) implying that some classical ETA metrics are not adapted and must be changed.
+
+. . .
+
+Directionality is replaced by convexity expressed as: $CONV(C) = 360/\Sigma \theta$ with $\theta$ the turning angle at each ecological state of cycle $C$.
+
+. . .
+
+Note that $\theta$ can be defined by ecological states outside the cycle of interest. This is why the **ecotraj** implementation uses the cyclical trajectory instead of the cycles:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleConvexity(x,DurC)#Note: the function takes x instead of cycle as input
+```
+. . .
+
+::: callout-note
+The function for the first cycle returns $NA$, this is expected but can you find why?
+:::
+
+. . .
+
+
+**ecotraj** has a function dedicated to obtain multiple summary metrics for cycles:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleMetrics(x,DurC)#Again, the function takes x instead of cycle as input
+```
+
+
+::: footer
+3.  Characterizing and comparing CETA trajectories
+:::
+
+## Metrics for fixed date trajectories
+
+Fixed trajectories are regular trajectories and can be studied with classical **ecotraj** functions:
+
+```{r, echo = TRUE, eval = TRUE}
+trajectoryMetrics(fdtraj)
+```
+
+
+::: footer
+3.  Characterizing and comparing CETA trajectories
+:::
+
+# 4. Cyclical shifts {background-color="#00B1ED"}
+
+## Computing cyclical shifts
+
+A last, and perhaps important aspect of CETA are cyclical shifts. They can be understood as multidimensional analogues of the phenological concept of advances and delays.
+
+. . .
+
+The function **cycleShifts** will compute by default all possible cyclical shifts in a given cyclical trajectory:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleShifts(x,DurC)#Note that, again, we give x as input.
+```
+
+::: footer
+4.  Cyclical shifts
+:::
+
+
+#  {background-color="#FFFFFF"}
+
+![Summary of the CETA workflow](resources/img/CETA_workflow.png)
+
