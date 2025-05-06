@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Cyclical Ecological Trajectory Analysis"
 title-slide-attributes: 
-  data-background-color: "#008080"
+  data-background-color: "#00B1ED"
 format:
   revealjs:
     embed-resources: true
@@ -18,13 +18,13 @@ number-sections: false
 slide-number: true
 progress: true
 ---
-# Outline {background-color="#008080"}
+# Outline {background-color="#00B1ED"}
 
 ::::: columns
 ::: {.column width="50%"}
 1. Aims and rationale of CETA
 2. CETA-specific conceptual and geometric elements
-3. Characterizing CETA trajectories
+3. Characterizing and comparing CETA trajectories
 4. Cyclical shifts
 :::
 
@@ -35,7 +35,7 @@ progress: true
 :::::
 
 
-# 1. Introduction {background-color="#008080"}
+# 1. Introduction {background-color="#FE400"}
 
 ## About Cyclical Ecological Trajectory Analysis
 
@@ -74,7 +74,7 @@ library(ecotraj)
 1.  Aims and rationale of CETA
 :::
 
-# 2. CETA-specific conceptual and geometric elements {background-color="#008080"}
+# 2. CETA-specific conceptual and geometric elements {background-color="#00B1ED"}
 
 ## Conceptual and geometric elements
 
@@ -108,7 +108,7 @@ Together these elements allow defining CETA-specific trajectories:
 
 ## Defining some toy CETA trajectories
 
-Start by defining one cyclical trajectory:
+Start by defining one cyclical trajectory with three cycles:
 
 ```{r, echo = TRUE, eval = TRUE}
 times <- 0:30 #The sampling times of the time series
@@ -116,10 +116,11 @@ DurC <- 10 #The duration of the cycles (i.e. the periodicity of the time series)
 dates <- times%%DurC #The dates associated to each times
 site <- rep(c("A"),length(times)) #The sites associated to each times (only one)
 trend <- 0.05 #A trend that will be applied to the cycles to make it more interesting
+noise <- 0.05 #A noise term to make things less perfect
 
 #Make cyclical data
-x <- sin((times*2*pi)/DurC)+trend*times
-y <- cos((times*2*pi)/DurC)
+x <- sin((times*2*pi)/DurC)+trend*times+rnorm(length(times),mean=0,sd=noise)
+y <- cos((times*2*pi)/DurC)+rnorm(length(times),mean=0,sd=noise)
 mat <- cbind(x,y)
 
 #Express it as a distance matrix
@@ -208,4 +209,54 @@ We won't get into the detail now but you can check the [CETA vignette](https://e
 
 ::: footer
 2.  CETA-specific conceptual and geometric elements
+:::
+
+# 3. Characterizing and comparing CETA trajectories {background-color="#00B1ED"}
+
+## Metrics for cycles
+
+Cycle have particular geometries (they loop back on themselves) implying that some classical ETA metrics are not adapted and must be changed.
+
+. . .
+
+Directionality is replaced by convexity expressed as: $CONV(C) = 360/\Sigma \theta$ with $\theta$ the turning angle at each ecological state of cycle $C$.
+
+. . .
+
+Note that $\theta$ can be defined by ecological states outside the cycle of interest. This is why the **ecotraj** implementation uses the cyclical trajectory instead of the cycles:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleConvexity(x,DurC)#Note: the function takes x instead of cycle as input
+```
+. . .
+
+::: callout-note
+The function for the first cycle returns $NA$, this is expected but can you find why?.
+:::
+
+. . .
+
+
+**ecotraj** has a function dedicated to obtain multiple summary metrics for cycles:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleMetrics(x,DurC)#Again, the function takes x instead of cycle as input
+```
+
+
+::: footer
+3.  Characterizing and comparing CETA trajectories
+:::
+
+## Metrics for fixed date trajectories
+
+Fixed trajectories are regular trajectories and can be studied with classical **ecotraj** functions:
+
+```{r, echo = TRUE, eval = TRUE}
+trajectoryMetrics(fdtraj)
+```
+
+
+::: footer
+3.  Characterizing and comparing CETA trajectories
 :::
