@@ -10,8 +10,8 @@ format:
     logo: resources/img/logo-lemar-big.png
     theme: [default, resources/scss/custom.scss]
 editor: source
-author: "Nicolas Djeghri, Miquel De Cáceres, Anthony Sturbois"
-institute: "LEMAR, EMF-CREAF, VivArmor Nature"
+author: "Nicolas Djeghri, Anthony Sturbois, Miquel De Cáceres"
+institute: "LEMAR, VivArmor Nature, EMF-CREAF"
 toc: false
 toc-depth: 2
 number-sections: false
@@ -260,3 +260,27 @@ trajectoryMetrics(fdtraj)
 ::: footer
 3.  Characterizing and comparing CETA trajectories
 :::
+
+# 4. Cyclical shifts {background-color="#00B1ED"}
+
+## Computing cyclical shifts
+
+A last, and perhaps important aspect of CETA are cyclical shifts. They can be understood as multidimensional analogues of the phenological concept of advances and delays.
+
+. . .
+
+The function **cycleShifts** will compute by default all possible cyclical shifts in a given cyclical trajectory:
+
+```{r, echo = TRUE, eval = TRUE}
+cycleShifts(x,DurC)#Note that, again, we give x as input.
+```
+
+::: footer
+4.  Cyclical shifts
+:::
+
+
+#  {background-color="#FFFFFF"}
+
+![Summary of the CETA workflow](resources/img/CETA_workflow.png)
+
