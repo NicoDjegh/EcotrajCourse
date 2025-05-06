@@ -231,7 +231,7 @@ cycleConvexity(x,DurC)#Note: the function takes x instead of cycle as input
 . . .
 
 ::: callout-note
-The function for the first cycle returns $NA$, this is expected but can you find why?.
+The function for the first cycle returns $NA$, this is expected but can you find why?
 :::
 
 . . .
