@@ -24,7 +24,8 @@ Code for course sessions is in `sessions/*.qmd` files. Printed
 `sessions/pdf/*.pdf` files can also be found.
 
 1.  Introduction to Ecological Trajectory Analysis
-2.  Introduction to Cyclical Ecological Trajectory Analysis
+2.  Exploring the potential of ETA on different multivariate spaces
+3.  Introduction to Cyclical Ecological Trajectory Analysis
 
 ## Ancillary files
 
@@ -49,7 +50,7 @@ The proposed exercises are the following:
 
 | Exercise | Purpose |
 |----|----|
-| exercise CETA | Learn how to conduct CETA on a real example of zooplancton community dynamics |
+| exercise CETA | Practice CETA on a real example of zooplancton community dynamics |
 
 ## Course editions
 
