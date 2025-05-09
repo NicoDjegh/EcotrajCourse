@@ -1,0 +1,466 @@
+---
+title: "Using the potential of ETA though a diversity of omega spaces"
+author: "Anthony STURBOIS"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: TRUE
+vignette: >
+  %\VignetteIndexEntry{Taxonomic, functional and trophic ETA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignettePackage{ecotraj}
+  \usepackage[utf8]{inputenc}
+---
+
+## 1. About this lesson
+This lesson focuses on the diversity of omega spaces that can be used to answer different ecological questions unsing ETA concepts and metrics. We focus the presentation on three applications based on taxonomic, functional and stable isotope data sets looking for dynamics though trajectory patterns.
+
+## 2. Loading libraries
+First of all, we load the required libraries, including `ecotraj`:
+```{r load libraries, echo=FALSE}
+library(ecotraj)
+library (ape)
+library(mapplots)
+library(factoextra)
+library(FactoMineR)
+library(reshape2)
+library(sp)
+```
+## 3.1 Taxonomic and functional trajectory analysis on the intertidal soft-bottom benthic community in the Bay of Saint-Brieuc (Britanny, France)
+#### Objectives: 
++ Measuring taxonomic and functional changes though recovering and departing patterns
++ Representing trajectory metrics and patterns with synthetic maps
+
+This work has been published in: 
++ Sturbois A., Cormy G., Schaal G., Gauthier O, Ponsero A., Le Mao P., Riera P., Desroy N., 2021,
+Characterizing spatiotemporal changes in benthic communities: Taxonomic and functional 
+trajectories of intertidal assemblages in the bay of Saint-Brieuc (English Channel).
+*Estuarine, Coastal and Shelf Science*, Issue 262, 107603.
+https://doi.org/10.1016/j.ecss.2021.107603
+
+### 3.1.1 Taxonomic trajectory analysis
+The taxonomic data set consists in a Hellinger transformed abundance matrix composed of
+105 species, 42 entities (sampling sites located in the bay of Saint-Brieuc) and 
+3 times over a 30 years period (sampling years: 1987-2001-2019).
+
+We first load the 3 data sets necessary for this application.
+The taxonomic dataset 'dataI'
+```{r,echo=FALSE}
+load(file="../StudentRdata/dataI.Rdata")
+```
+The GPS location of entities 'loc_entities'
+```{r ,echo=FALSE}
+load(file="../StudentRdata/loc_entities.Rdata")
+```
+The shapefile for the map representation 'map'
+```{r,echo=FALSE}
+load(file="../StudentRdata/map.Rdata")
+```
+
+Here we choose to derive a distance matrix from a PCA points cloud as input for trajectory analysis. The same approach will be followed for the functional part of this application (section 3.3.2). 
+
+We first perform the PCA, look for the influence of variables (i.e. species) in the two first dimensions and collect the coordinates of the PCA points cloud to derive the distance matrix d 
+used for trajectory analysis. 
+
+```{r,echo=FALSE}
+pca<-PCA(as.data.frame(dataI[,-c(1:2)]), ncp=105, graph=FALSE)
+var <- get_pca_var(pca)
+```
+
+We make the factor map.
+```{r,echo=T, fig.height=6, fig.width=6}
+fviz_pca_var(pca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+```
+
+```{r,echo=FALSE}
+ind <- get_pca_ind(pca)
+xy<-matrix(ind$coord, nrow=126,ncol=105)
+
+entities<-dataI[,1]
+times<-dataI[,2]
+d=dist(xy)
+```
+
+We define the trajectories with the function `defineTrajectories()` as an object x of class trajectory containing the taxonomic distance matrix, and the vectors of entities and times. 
+
+```{r}
+x <- defineTrajectories(d, entities, times)
+```
+
+Let's have a look at a basic representation of trajectory though the taxonomic omega space 
+using the function `trajectory PCoA()`.
+
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+trajectoryPCoA(x)
+```
+
+Let's calculate some trajectory metrics. The idea is to measure taxonomic changes over time with the two consecutive segment length (SL) values (i.e. 1987-2001 and 2001-2019) and to use the net change (NC) values (i.e 1987-2019) to separate recovering from departing patterns. We use the function `trajectoryLengths()` and fill the argument 'relativeToinitial' to calculate SL (FALSE) or NC (TRUE).
+
+```{r}
+SL<-trajectoryLengths(x)
+NC<-trajectoryLengths(x, relativeToInitial = TRUE)
+```
+
+We also aim to define trajectory clusters to look for similar taxonomic dynamics among entities.
+For that we compute a distance matrix among trajectories with the function `trajectoryDistances()`
+```{r}
+D<-trajectoryDistances(x, distance.type = "DSPD")
+```
+
+Here we performed a dendrogram derived from D, the distance matrix among trajectories using the function `hclust()`. We then collect entities membership in the vector 'grp'.
+```{r, echo=TRUE, fig.height=6, fig.width=10}
+Hst=25
+colstd<-c("lightskyblue4","lightskyblue1","lightskyblue3","navyblue")
+cols<-c("lightskyblue1","lightskyblue3","navyblue","lightskyblue4")
+
+hsxy <- hclust(D, "ward.D2")
+plot(hsxy,hang = -1, main="distancehellinger 87_19", cex=.6)
+y<-rect.hclust (hsxy, h=Hst,
+                border = colstd)
+grp <- cutree(hsxy, h=Hst)
+```
+
+The trajectory diagram can be now customized using a vector of color depending on the four different trajectory clusters using the vector 'grp'
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+trajectoryPCoA(x, traj.colors=cols[grp])
+```
+
+We map the entities and their trajectory clusters memberships
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+plot(loc_entities$X,loc_entities$Y,col = cols[grp], bg = cols[grp],pch = 16, cex=2,xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400),xlab="Longitude",ylab="Latitude", main="Taxonomic trajectory clusters (1987,2001,2019)")
+plot(map,add=T, col="transparent")
+```
+The objective now is to represent trajectory metrics though a synthetic maps including 
+the two segment length (i.e. 1987-2001 and 2001-2019) and the net change (i.e. 1987-2019) values 
+with a symbol composed of one circle (NC) and two peripheric triangles (SLs), the top one (SL2001_2019) being directed depending on recovering vs departing pattern. 
+
+```{r}
+NC87_19<-c(NC[,2])
+SL87_01<-c(SL[,1])
+SL01_19<-c(SL[,2])
+SL_NC<-as.data.frame(cbind(entities[1:42],SL87_01,SL01_19,NC87_19))
+colnames(SL_NC)<-c("Entities","SL87_01","SL01_19","NC87_19")
+```
+
+We calculate the RDT for the distinction between recovering and departing trajectories (RDT)
+
+```{r}
+diffSL87_01vsNC87_19=SL87_01-NC87_19
+
+RDT<-c()
+for (i in 1:42){
+  if (diffSL87_01vsNC87_19[[i]]>0) {
+    RDT[[i]] =1
+  } else {
+    RDT[[i]]  =2
+  }}
+
+SL_NC$RDT<-unlist(RDT)
+```
+
+We correct the geographical positions for top and down triangles to avoid overlaps. 
+Here the value of 200 was adapted but users should adjust this value depending of 
+their map properties.
+
+```{r}
+loc_entities_upY<-c(loc_entities$Y+200)
+loc_entities_dwnY<-c(loc_entities$Y-200)
+```
+
+We create the map.
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+col<-c("black","grey")
+cex<-c(0.8,0.8)
+pch<-c(24,24)
+pch2<-c(25,24)
+
+plot(loc_entities$X,loc_entities$Y,col = "blue",pch = 1 ,cex=NC87_19/7,xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400),xlab="Longitude",ylab="Latitude", main="Taxonomic changes (1987,2001,2019)")
+plot(map,add=T, col="transparent")
+points(loc_entities$X,loc_entities_dwnY,bg=col[SL_NC$RDT],col =col[SL_NC$RDT] ,
+       pch = pch ,cex=SL87_01/7,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+points(loc_entities$X,loc_entities_upY,bg=col[SL_NC$RDT],col = col[SL_NC$RDT],
+       pch = pch2[SL_NC$RDT] ,cex=SL01_19/7,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+points(loc_entities$X,loc_entities$Y,col = "blue",pch = 1 ,cex=NC87_19/7,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+```
+
+We can also represent Pie using Path vs Net changes values to represent the intensity of recovering or departing patterns
+
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+X<-rep(loc_entities$X,2)
+Y<-rep(loc_entities$Y,2)
+Length<-c(rep("Path",42),rep("Net",42))
+TL<-as.data.frame(cbind(X,Y,Length))
+TL$Dist<-c(SL[,3]-NC[,2],NC[,2])
+TL$Length<-Length
+xyz <- make.xyz(TL$X,TL$Y,TL$Dist,TL$Length)
+
+plot(loc_entities$X,loc_entities$Y,type="n",xlab="",ylab="", main="Taxonomic Path vs Netchange",xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400))
+plot(map,add=T, col="transparent")
+draw.pie(xyz$x, xyz$y, xyz$z, radius = 300, col=c("blue","white"))
+legend('bottomright',legend="Net changes between 1987 and 2019", pch=15, col="blue", cex=0.75)
+legend.z <- round(max(xyz$z,na.rm=TRUE))
+legend.bubble("bottomleft", z=legend.z,round=0,maxradius=300,bty="n",txt.cex=0.6, col="darkgrey")
+text(278100,6836700,"Path",cex=0.7)
+```
+
+
+### 3.1.2 Functionnal trajectory analysis
+Taxonomic dynamics do not necessary lead to functional community dynamics. We were interested by this aspect for the intertidal part of the bay of Saint-Brieuc. 
+Here, we calculate Community Weighted Means (CWM, community trait values weighted by abundance of species) and use this new CWM data set derived from the taxonomic data as input for ETA.
+The functional data set was composed of six traits divided in 23 categories. As for the taxonomic data sets, the functional one consists in 42 entities (sampling sites located in the bay of Saint-Brieuc) and three 3 times over a 30 years period (sampling years: 1987-2001-2019)).
+We run functional trajectory analysis with the same method used for taxonomic analysis.
+
+Lets load the data set
+```{r load dataI, echo=T}
+load(file="../StudentRdata/data_traits.Rdata")
+```
+These traits characterize the morphology (body size, flexibility, fragility) and behavioral traits (feeding behavior, living habit, tolerance). This set of traits is related to the vulnerability of species to mechanical disturbances (associated to recreational and professional fishing activity and the circulation of vehicles) and organic enrichment.
+
+Performing the PCA
+```{r}
+pcaf<-PCA(as.data.frame(data_traits), ncp=23, graph = F)
+```
+
+```{r, echo=T, fig.height=6, fig.width=6}
+var <- get_pca_var(pcaf)
+fviz_pca_var(pcaf, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+```
+
+Collecting the coordinates of point within the PCA points cloud to derive df
+```{r}
+ind <- get_pca_ind(pcaf)
+xy<-matrix(ind$coord, nrow=126,ncol=23)
+df=dist(xy)
+```
+
+Defining the trajectories
+```{r}
+xf <- defineTrajectories(df, entities, times)
+```
+
+Calculation of trajectory metrics and dissimilarities among trajectories
+```{r, echo=T}
+SLf<-trajectoryLengths(xf)
+NCf<-trajectoryLengths(xf, relativeToInitial = TRUE)
+Df<-trajectoryDistances(xf, distance.type = "DSPD")
+```
+
+We can now define the Trajectory clusters derived from Df
+```{r, echo=TRUE, fig.height=6, fig.width=10}
+Hst=15
+colstd<-c("chartreuse", "chartreuse3", "chartreuse4","darkgreen")
+cols<-c("chartreuse", "chartreuse3", "chartreuse4","darkgreen")
+
+hsxyf <- hclust(Df, "ward.D2")
+plot(hsxyf,hang = -1, main="functionnal trajectory clusters 87_19", cex=.6)
+yf<-rect.hclust (hsxyf, h=Hst, border =colstd)
+
+grpf <- cutree(hsxyf, h=Hst)
+```
+
+Let's represent trajectories
+```{r, echo=TRUE, fig.height=6, fig.width=10}
+trajectoryPCoA(xf, traj.colors=cols[grpf])
+```
+
+Map of trajectory clusters memberships
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+plot(loc_entities$X,loc_entities$Y,col = cols[grpf], bg = cols[grpf],pch = 16, cex=2,xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400),xlab="Longitude",ylab="Latitude", main="Functional trajectory clusters (1987,2001,2019)")
+plot(map,add=T, col="transparent")
+```
+
+
+Metrics calculations and distinction between recovering and departing trajectories for the synthetic map
+```{r}
+NCf87_19<-c(NCf[,2])
+SLf87_01<-c(SLf[,1])
+SLf01_19<-c(SLf[,2])
+SL_NCf<-as.data.frame(cbind(entities[1:42],SLf87_01,SLf01_19,NCf87_19))
+colnames(SL_NC)<-c("Entities","SLf87_01","SLf01_19","NCf87_19")
+
+
+diffSLf87_01vsNCf87_19=SLf87_01-NCf87_19
+
+RDTf<-c()
+for (i in 1:42){
+  if (diffSLf87_01vsNCf87_19[[i]]>0) {
+    RDTf[[i]] =1
+  } else {
+    RDTf[[i]]  =2
+  }}
+
+SL_NCf$RDTf<-unlist(RDTf)
+```
+
+Synthetic maps including the two segment length and the net change values with the symbol composed of one circle and two triangles
+
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+#coordinate of triangles
+loc_entities_upY<-c(loc_entities$Y+200)
+loc_entities_dwnY<-c(loc_entities$Y-200)
+
+col<-c("black","grey")
+cex<-c(0.8,0.8)
+pch<-c(24,24)
+pch2<-c(25,24)
+
+plot(loc_entities$X,loc_entities$Y,col = "green",pch = 1 ,cex=NCf87_19/4,xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400),xlab="Longitude",ylab="Latitude", main="Functional changes (1987,2001,2019)")
+plot(map,add=T, col="transparent")
+points(loc_entities$X,loc_entities_dwnY,bg=col[SL_NCf$RDTf],col =col[SL_NCf$RDTf] ,
+       pch = pch ,cex=SLf87_01/4,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+points(loc_entities$X,loc_entities_upY,bg=col[SL_NCf$RDTf],col = col[SL_NCf$RDTf],
+       pch = pch2[SL_NCf$RDTf] ,cex=SLf01_19/4,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+points(loc_entities$X,loc_entities$Y,col = "green",pch = 1 ,cex=NCf87_19/4,xlim=c(282570-4400,282570+4400),
+       ylim=c(6840592-4400,6840592+4400))
+
+```
+
+The second map of pie Path vs Net changes (intensity of recovering or departing functional patterns)
+
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+X<-rep(loc_entities$X,2)
+Y<-rep(loc_entities$Y,2)
+Length<-c(rep("Path",42),rep("Net",42))
+TLf<-as.data.frame(cbind(X,Y,Length))
+TLf$Dist<-c(SLf[,3]-NCf[,2],NCf[,2])
+TLf$Length<-Length
+xyz <- make.xyz(TLf$X,TLf$Y,TLf$Dist,TLf$Length)
+
+plot(loc_entities$X,loc_entities$Y,type="n",xlab="",ylab="", main="Functional Path vs Netchange",xlim=c(282570-4400,282570+4400),
+     ylim=c(6840592-4400,6840592+4400))
+plot(map,add=T, col="transparent")
+draw.pie(xyz$x, xyz$y, xyz$z, radius = 300, col=c("green","white"))
+legend('bottomright',legend="Net changes between 1987 and 2019", pch=15, col="green", cex=0.75)
+legend.z <- round(max(xyz$z,na.rm=TRUE))
+legend.bubble("bottomleft", z=legend.z,round=0,maxradius=300,bty="n",txt.cex=0.6, col="darkgrey")
+text(278100,6836700,"Path",cex=0.7)
+```
+
+
+## 4. Spatial and temporal resource partitioning in fur seals
+
+### 4.1 Fur seal stable isotope dataset
+We begin by loading the package dataset `furseals`:
+```{r load furseals, echo=T}
+data("furseals")
+```
+
+This is a subset of the dataset provided in: 
+
++ Kernaléguen, L., Arnould, J.P.Y., Guinet, C., Cherel, Y., 2015.  Determinants of individual foraging specialization in large marine vertebrates, the Antarctic and subantarctic fur seals. *Journal of Animal Ecology* 1081–1091.
+
+Briefly, fur seals [the Antarctic fur seal *Arctocephalus gazella* (AFS) and subantarctic fur seal *A. tropicalis* (SAFS)] whisker SI values yield unique long-term information on individual behaviour which integrates the spatial, trophic and temporal dimensions of the ecological niche. The foraging strategies of this two species of sympatric fur seals were examined in the winter 2001/2002 at Crozet, Amsterdam and Kerguelen Islands (Southern Ocean) using the stable isotope values of serially sampled whiskers. The method consists in the analysis of consecutive whisker sections (3 mm long) starting from the proximal (facial) end, with the most recently synthesized tissue remaining under the skin. Only individuals (n = 47) with whiskers totalizing at least 30 sections were selected in the initial data, and only those 30 sections were considered herein, from t1 (more recent values) to t30 (oldest values).
+
+
+### 4.2 Trajectory metrics
+
+In this section, we illustrate how to calculate trajectory metrics to characterize the foraging strategy of each fur seal. In the following sections, we show how to use these metrics as data to create plots. 
+
+First, we calculate net changes relative to the initial state (i.e. the distance between stable isotope compositions (i.e state) of each whisker section and the initial stable isotope composition) Note that we use here the 2D funtion of ETA for the calculation of trajectory lengths:
+```{r, echo=T}
+Net_changes<-trajectoryLengths2D(furseals[,c("d13C","d15N")],
+                                 furseals$ID_SITA,
+                                 furseals$Time, relativeToInitial=TRUE) 
+head(Net_changes)
+```
+
+We then calculate trajectory segment lengths, i.e. the distance between the stable isotope composition of consecutive whisker sections in the stable isotope space:
+```{r, echo=T}
+Segment_lengths<-trajectoryLengths2D(furseals[,c("d13C","d15N")],
+                                     furseals$ID_SITA,
+                                     furseals$Time, relativeToInitial=FALSE) 
+head(Segment_lengths)
+```
+
+### 4.3 Identification and characterization of trajectory clusters
+
+Here we aim to define groups of fur seals depending on the similarity of their foraging strategy. We need first to calculate distances between pairs of complete trajectories in the stable isotope space:
+```{r, echo=T}
+
+dsi <- dist(furseals[,c("d13C","d15N")])
+entities<-furseals$ID_SITA
+times<-furseals$Time
+
+xsi <- defineTrajectories(dsi, entities, times)
+  
+Ds<-trajectoryDistances(xsi, distance.type = "DSPD",
+                        symmetrization = "mean", add = TRUE)
+```
+
+Then, we can use function `hclust()` to conduct a hierarchiacal clustering on the symmetric matrix `Ds`:
+```{r, echo=TRUE, fig.height=4, fig.width=6}
+colstd<-c("black","yellow","green","blue","grey","red")
+pt<-c(16,16,16,16)
+hsxy <- hclust(Ds, "ward.D2")
+plot(hsxy,hang = -1, main="distance Fur Seals", cex=.6)
+Hst=2 # Cutting height
+x<-rect.hclust(hsxy, h=Hst,
+               border = colstd)
+```
+
+We cut the dendrogram at height `Hst` to obtain a vector of cluster membership and copy it in `furseals` as a factor:
+```{r}
+groups <- cutree(hsxy, h=Hst)
+furseals$cluster <- as.factor(groups)
+```
+
+#### 4.3.1 Individual trophic trajectories for males and females of *A. gazella* and *A. tropicalis*
+
+Here we display trophic trajectories of all individuals, in plots corresponding to combinations of species and gender. To facilitate such plots, we create of a vector with the combination of species and gender:
+```{r, echo=T}
+furseals$sp_gender<-paste(furseals$Sexe, furseals$Species, sep=" ")
+```
+
+We now create a diagram to display fur seal trophic trajectories in the stable isotope space. Panels correspond to the combination of species and gender. In each panel, X-Y axes are defined by d13C and d15N stable isotope values. Arrows connects all whiskers section SI states from t1 to t30 (i.e. most recent to oldest SI state). Colors corresponds to trajectory clusters and shape to breeding sites:
+```{r, echo=TRUE, fig.height=6, fig.width=6}
+ggplot(data=furseals,aes(x=d13C,y=d15N,color=cluster,shape=Place))+
+  geom_point()+
+  geom_path(aes(x=d13C,y=d15N,group=ID_SITA,color=cluster),arrow = arrow(length = unit(0.10, "cm")))+
+  xlab(expression(delta^13*"C"))+
+  ylab(expression(delta^15*"N"))+
+  facet_wrap(~sp_gender) +
+  theme_classic()
+```
+
+#### 4.4.2 Net changes time series for males and females of both fur seal species
+
+In this sub-section we display net changes time series for all individuals, in plots corresponding to combinations of species and gender
+We prepare a subset of the data called `NC`: 
+```{r}
+NC<-Net_changes[,-30]
+NC$cluster<-furseals$cluster[1:47]
+NC$ID<-as.numeric(rownames(NC))
+colnames(NC)<-c(2:30,"cluster","ID")
+```
+
+We then prepare the subset. We notably transform NC in a line structure to compute `NCline` using the function "melt", order the data set and add the vector sp_gender:
+```{r}
+NCline<-as.data.frame(melt(NC,id=c("ID","cluster")))
+colnames(NCline)<-c("ID","Clusters","Time_from_present","Net_changes")
+NCline[,3]<-as.numeric(NCline[,3])
+NCline[,2]<-as.factor(NCline[,2])
+NCline<-NCline[order(NCline[,3],decreasing=F), ]
+NCline$sp_gender<-c(furseals$sp_gender[1:47])
+```
+
+We now create the plot to display net changes time series for all individuals in panel corresponding Arrows connects all whiskers section stable isotope values from t1 to t30 (i.e. most recent to oldest stable isotope values). Colours corresponds to trajectory clusters:
+```{r, fig.height=4, fig.width=6}
+ggplot(data=NCline,aes(x=Time_from_present,y=Net_changes,color=Clusters))+
+  geom_path(aes(x=Time_from_present,y=Net_changes,group=ID,color=Clusters),arrow = arrow(length = unit(0.10, "cm")))+
+  facet_wrap(~sp_gender)+
+  theme_classic()
+```
+
+

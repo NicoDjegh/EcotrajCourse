@@ -48,7 +48,8 @@ Exercises are included in a separate folder.
 The proposed exercises are the following:
 
 | Exercise | Purpose |
-|----------|---------|
+|----|----|
+| exercise CETA | Learn how to conduct CETA on a real example of zooplancton community dynamics |
 
 ## Course editions
 
