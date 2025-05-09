@@ -1,0 +1,123 @@
+---
+title: "exercise_CETA"
+author: "Nicolas Djeghri"
+date: '2025-05-09'
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+``` 
+
+## Exercise objectives
+
+  1. Build trajectory objects from prepared zooplankton community data
+  2. Analyze cycles
+  3. Compute cyclical shifts
+
+## Step by step exercise
+
+1. The package **ecotraj** contains the data (`northseaZoo`) and functions needed for the exercise. Start by loading the package and the data.
+```{r}
+library(ecotraj)
+
+data("northseaZoo")
+```
+
+2. In community ecology,euclidean distances obtained from Hellinger-transformed data are adapted to follow changes in communities. Find these data in `northseaZoo` and build a distance matrix out of them.
+```{r}
+?northseaZoo #To obtain details on the dataset
+
+northseaZoo$Dist <- dist(northseaZoo$Hellinger)
+```
+
+3. In **ecotraj** we need to first make a classic trajectory object before extract the specific CETA trajectories. Build a trajectory object using `defineTrajectories()`. Take a good look at the structure of the data to make the right choices in the function arguments! 
+```{r}
+#Times and sites are given in northseaZoo, we need to take them into account
+x_northseaZoo <- defineTrajectories(d = northseaZoo$Dist,
+                                    sites = northseaZoo$sites,
+                                    times = northseaZoo$times)
+```
+
+4. We can then proceed to extracting the cycles from the cyclical trajectory we have using `extractCycles`. What is the cycle duration you will need?
+```{r}
+cyclesNSZoo <- extractCycles(x_northseaZoo,cycleDuration = 1)
+```
+
+5. Plot the cycles. There is a dedicated function in **ecotraj**: `cyclesPCoA()`. Remember that you can play with graphic parameters (the output might take some time to compute).
+```{r}
+cyclePCoA(cyclesNSZoo,
+          sites.colors = c("blue","red"),
+          length = 0.05,
+          print.init.points = TRUE)
+```
+
+6. We can then observe how some of the cycle metrics have changed with time. You can compute different metrics at once using `cycleMetrics()`. Note that, perhaps confusingly (we apologize) this function does not take cycles as inputs but the parent cyclical trajectory (obtained at step 3). See the course for the reason.
+```{r}
+cyclesNSZoo_Metrics <- cycleMetrics(x_northseaZoo,cycleDuration = 1)
+```
+
+7. Plot the time series of the cycle length and convexity for the two sites.
+```{r}
+plot(cyclesNSZoo_Metrics$t_start[cyclesNSZoo_Metrics$site=="NNS"],
+     cyclesNSZoo_Metrics$length[cyclesNSZoo_Metrics$site=="NNS"],
+     col="blue",type="l",ylab="Cycle length",xlab="Years",las=1)
+plot(cyclesNSZoo_Metrics$t_start[cyclesNSZoo_Metrics$site=="SNS"],
+     cyclesNSZoo_Metrics$length[cyclesNSZoo_Metrics$site=="SNS"],
+     col="red",type="l",ylab="Cycle length",xlab="Years",las=1)
+plot(cyclesNSZoo_Metrics$t_start[cyclesNSZoo_Metrics$site=="NNS"],
+     cyclesNSZoo_Metrics$convexity[cyclesNSZoo_Metrics$site=="NNS"],
+     col="blue",type="l",ylab="Cycle convexity",xlab="Years",las=1)
+plot(cyclesNSZoo_Metrics$t_start[cyclesNSZoo_Metrics$site=="SNS"],
+     cyclesNSZoo_Metrics$convexity[cyclesNSZoo_Metrics$site=="SNS"],
+     col="red",type="l",ylab="Cycle convexity",xlab="Years",las=1)
+```
+
+8. Compute distances between cycles using `trajectoryDistances()`.
+```{r}
+cyclesZooDistances <- trajectoryDistances(cyclesNSZoo)
+```
+
+9. Note that these are distances between objects ordered in time: we can visualize them as trajectories! Define a trajectory object from the distances between cycles and plot it.
+```{r}
+x_second_stage <- defineTrajectories(d = cyclesZooDistances,
+                                     sites = cyclesNSZoo_Metrics$site,
+                                     times = cyclesNSZoo_Metrics$t_start)
+trajectoryPCoA(x_second_stage,
+               traj.colors=c("blue","red"),
+               length=0.05)
+```
+
+This is what we call "second-stage trajectory analysis", pretty meta uh?
+
+10. let's end the exercise by looking at cyclical shifts using function `cycleShifts()`. This is going to take some time, be patient!
+```{r}
+CSNSZoo <- cycleShifts(x_northseaZoo,
+                       cycleDuration = 1)
+```
+
+BONUS QUESTION: There is many possible comparisons when assessing cyclical shift so how to synthesize the data? One way is to derive trends out of the cyclical shifts computed. Try to obtain a long term trend for cyclical shift in the southern North Sea for the month of April (find it with: `unique(CSNSZoo$dateCS)[4]`). Clue: A (my) solution has to do with time scales.
+```{r}
+#Start by subsetting april in the SNS
+CS_SNS_April <- subset(CSNSZoo,(sites=="SNS")&(dateCS==unique(CSNSZoo$dateCS)[4]))
+#Express cyclical shifts in days
+CS_SNS_April$cyclicalShift <- CS_SNS_April$cyclicalShift*365.25
+
+#we can approach the trend in cyclical shift by regressing the time scale
+#(i.e. the time distance between the two cycles compared) against shift:
+model <- lm(CS_SNS_April$cyclicalShift~CS_SNS_April$timeScale)
+
+#plot it:
+plot(x=CS_SNS_April$timeScale,y=CS_SNS_April$cyclicalShift,
+     xlab="Time scale (years)",
+     ylab="Cyclical shift (days)",las=1)
+abline(h=0,col="dodgerblue",lwd=3)#this line is what is expected if no trend is detected
+abline(model,col="orangered",lwd=3)#this is what's actually observed
+
+model#the trend found is of 1.235 days/year of advance.
+#With a 65 year long time-series this means > two months!!!
+```
+
+## Final notes
+I hope you have now a better view of how CETA is implemented in **ecotraj**. Note that we haven't delved into fixed date trajectories. They are treated as regular trajectories and their convergence/divergence can be of particular interest. You'll find an example using the same data in the [CETA vignette](https://emf-creaf.github.io/ecotraj/articles/IntroductionCETA.html).

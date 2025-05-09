@@ -1,0 +1,79 @@
+---
+title: "exercise_CETA"
+author: "Nicolas Djeghri"
+date: '2025-05-09'
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+``` 
+
+## Exercise objectives
+
+  1. Build trajectory objects from prepared zooplankton community data
+  2. Analyze cycles
+  3. Compute cyclical shifts
+  
+## Step by step exercise
+
+1. The package **ecotraj** contains the data (`northseaZoo`) and functions needed for the exercise. Start by loading the package and the data.
+```{r}
+
+```
+
+2. In community ecology,euclidean distances obtained from Hellinger-transformed data are adapted to follow changes in communities. Find these data in `northseaZoo` and build a distance matrix out of them.
+```{r}
+
+```
+
+3. In **ecotraj** we need to first make a classic trajectory object before extract the specific CETA trajectories. Build a trajectory object using `defineTrajectories()`. Take a good look at the structure of the data to make the right choices in the function arguments! 
+```{r}
+
+```
+
+4. We can then proceed to extracting the cycles from the cyclical trajectory we have using `extractCycles`. What is the cycle duration you will need?
+```{r}
+
+```
+
+5. Plot the cycles. There is a dedicated function in **ecotraj**: `cyclesPCoA()`. Remember that you can play with graphic parameters (the output might take some time to compute).
+```{r}
+
+```
+
+6. We can then observe how some of the cycle metrics have changed with time. You can compute different metrics at once using `cycleMetrics()`. Note that, perhaps confusingly (we apologize) this function does not take cycles as inputs but the parent cyclical trajectory (obtained at step 3). See the course for the reason.
+```{r}
+
+```
+
+7. Plot the time series of the cycle length and convexity for the two sites.
+```{r}
+
+```
+
+8. Compute distances between cycles using `trajectoryDistances()`.
+```{r}
+
+```
+
+9. Note that these are distances between objects ordered in time: we can visualize them as trajectories! Define a trajectory object from the distances between cycles and plot it.
+```{r}
+
+```
+
+This is what we call "second-stage trajectory analysis", pretty meta uh?
+
+10. Let's end the exercise by looking at cyclical shifts using function `cycleShifts()`. This is going to take some time, be patient!
+```{r}
+
+```
+
+BONUS QUESTION: There is many possible comparisons when assessing cyclical shift so how to synthesize the data? One way is to derive trends out of the cyclical shifts computed. Try to obtain a long term trend for cyclical shift in the southern North Sea for the month of April (find it with: `unique(CSNSZoo$dateCS)[4]`). Clue: A (my) solution has to do with time scales.
+```{r}
+
+```
+
+## Final notes
+I hope you have now a better view of how CETA is implemented in **ecotraj**. Note that we haven't delved into fixed date trajectories. They are treated as regular trajectories and their convergence/divergence can be of particular interest. You'll find an example using the same data in the [CETA vignette](https://emf-creaf.github.io/ecotraj/articles/IntroductionCETA.html).
