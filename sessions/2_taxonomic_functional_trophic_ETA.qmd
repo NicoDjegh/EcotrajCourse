@@ -225,7 +225,6 @@ hsxy <- hclust(D, "ward.D2")
 plot(hsxy,hang = -1, main="distancehellinger 87_19", cex=.6)
 y<-rect.hclust (hsxy, h=Hst,
                 border = colstd)
-grp <- cutree(hsxy, h=Hst)
 ```
 
 ::: footer
@@ -237,6 +236,7 @@ grp <- cutree(hsxy, h=Hst)
 The trajectory diagram can be now customized using a vector of color depending on the four different trajectory clusters using the vector `grp`:
 
 ```{r, echo=TRUE, fig.height=5, fig.width=5}
+grp <- cutree(hsxy, h=Hst)
 trajectoryPCoA(x, traj.colors=cols[grp])
 ```
 
