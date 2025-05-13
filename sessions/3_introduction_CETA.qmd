@@ -7,7 +7,7 @@ format:
     embed-resources: true
     incremental: true
     smaller: true
-    logo: resources/img/logo-lemar-big.png
+    logo: resources/img/logos.png
     theme: [default, resources/scss/custom.scss]
 editor: source
 author: "Nicolas Djeghri, Anthony Sturbois, Miquel De Cáceres"

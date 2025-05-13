@@ -7,7 +7,7 @@ format:
     embed-resources: true
     incremental: true
     smaller: true
-    logo: resources/img/emf_logo.svg
+    logo: resources/img/logos.png
     theme: [default, resources/scss/custom.scss]
 editor: source
 author: "Miquel De Cáceres, Anthony Sturbois, Nicolas Djeghri"
