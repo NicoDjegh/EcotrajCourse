@@ -269,9 +269,9 @@ We start assembling the NC and SL metrics:
 
 ```{r, echo = TRUE}
 SL_NC <- data.frame(Entities = entities[1:42],
-                  SL87_01 = NC[,2],
-                  SL01_19 = SL[,1],
-                  NC87_19 = SL[,2])
+                  SL87_01 = SL[,1],
+                  SL01_19 = SL[,2],
+                  NC87_19 = NC[,2])
 ```
 
 . . .
@@ -491,9 +491,9 @@ Metrics calculations and distinction between recovering and departing trajectori
 
 ```{r, echo = TRUE}
 SL_NCf <- data.frame(Entities = entities[1:42],
-                     SLf87_01 = NCf[,2],
-                     SLf01_19 = SLf[,1],
-                     NCf87_19 = SLf[,2])
+                     SLf87_01 = SLf[,1],
+                     SLf01_19 = SLf[,2],
+                     NCf87_19 = NCf[,2])
 SL_NCf$RDTf <- ifelse((SL_NCf$SLf87_01 - SL_NCf$NCf87_19) > 0, 1, 2)
 ```
 
