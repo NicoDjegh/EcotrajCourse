@@ -35,7 +35,7 @@ progress: true
 
 ::: {.column width="50%"}
 
-![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+![M.C. Escher - Waterfall, 1961](resources/img/Escher_waterfall.png)
 :::
 :::::
 
@@ -752,4 +752,4 @@ par(oldpar)
 
 #  {background-color="#008080"}
 
-![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+![M.C. Escher - Waterfall, 1961](resources/img/Escher_waterfall.png)

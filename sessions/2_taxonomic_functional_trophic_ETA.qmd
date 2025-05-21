@@ -21,16 +21,16 @@ progress: true
 # Outline {background-color="#00B1ED"}
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="55%"}
 1. Introduction
 2. Taxonomic trajectory analysis
 3. Functional trajectory analysis
 4. Stable isotope trajectory analysis
 :::
 
-::: {.column width="50%"}
+::: {.column width="45%"}
 
-![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+![M.C. Escher - Sky and Water I, 1938](resources/img/Escher_Air&Water.jpg)
 :::
 :::::
 
@@ -729,4 +729,4 @@ ggplot(data=NCline,aes(x=Time_from_present,y=Net_changes,color=Clusters))+
 
 #  {background-color="#00B1ED"}
 
-![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
+![M.C. Escher - Sky and Water I, 1938](resources/img/Escher_Air&Water.jpg)

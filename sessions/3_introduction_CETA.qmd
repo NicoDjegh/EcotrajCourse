@@ -284,3 +284,6 @@ cycleShifts(x,DurC)#Note that, again, we give x as input.
 
 ![Summary of the CETA workflow](resources/img/CETA_workflow.png)
 
+#  {background-color="#00B1ED"}
+
+![M.C. Escher - Dragon, 1952](resources/img/Escher_dragon.jpg)
